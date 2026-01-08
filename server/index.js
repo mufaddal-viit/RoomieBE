@@ -7,19 +7,24 @@ import createExpensesRouter from './expense.js';
 import createHealthRouter from './health.js';
 import createRoommateRouter from './Roommate.js';
 import createRoomsRouter from './Rooms.js';
+import { createAuthMiddleware } from './middleware/auth.js';
 
 const app = express();
 const prisma = new PrismaClient();
+const auth = createAuthMiddleware(prisma);
 const PORT = process.env.PORT || 4003;
 
 app.use(cors());
 app.use(express.json());
+app.get("/", (req, res) => {
+  res.send("ALL OKAAY TO PROCEED");
+});
 
-app.use('/health', createHealthRouter(prisma));
-app.use('/api', createRoomsRouter(prisma));
-app.use('/api', createRoommateRouter(prisma));
+app.use('/health', createHealthRouter());
+app.use('/api', createRoomsRouter(prisma, auth));
+app.use('/api', createRoommateRouter(prisma, auth));
 app.use('/api', createAuthRouter(prisma));
-app.use('/api', createExpensesRouter(prisma));
+app.use('/api', createExpensesRouter(prisma, auth));
 
 async function startServer() {
   console.log('Connecting to the database...');
@@ -32,7 +37,7 @@ async function startServer() {
   }
 
   app.listen(PORT, () => {
-    console.log(`API server running on http://localhost:${PORT}`);
+    console.log(`API server running on http://localhost:${PORT}/app/`);
   });
 }
 
