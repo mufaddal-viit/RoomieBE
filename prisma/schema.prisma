@@ -26,8 +26,8 @@ model Room {
 model Roommate {
   id               String    @id @default(auto()) @map("_id") @db.ObjectId
   name             String
-  email            String?
-  password         String?
+  email            String    @unique
+  password         String
   isManager        Boolean   @default(false)
   roomId           String    @db.ObjectId
   room             Room      @relation(fields: [roomId], references: [id])
