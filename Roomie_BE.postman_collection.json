@@ -30,6 +30,10 @@
       "value": ""
     },
     {
+      "key": "inviteCode",
+      "value": "ROOM-ABC123"
+    },
+    {
       "key": "expenseId",
       "value": ""
     }
@@ -74,6 +78,50 @@
       }
     },
     {
+      "name": "Get Rooms",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/rooms"
+      }
+    },
+    {
+      "name": "Join Room (Invite Code)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"inviteCode\": \"{{inviteCode}}\"\n}"
+        },
+        "url": "{{baseUrl}}/api/rooms/join"
+      }
+    },
+    {
       "name": "Create Room",
       "event": [
         {
@@ -82,7 +130,8 @@
             "type": "text/javascript",
             "exec": [
               "const data = pm.response.json();",
-              "if (data?.id) pm.environment.set('roomId', data.id);"
+              "if (data?.id) pm.environment.set('roomId', data.id);",
+              "if (data?.inviteCode) pm.environment.set('inviteCode', data.inviteCode);"
             ]
           }
         }
@@ -116,6 +165,67 @@
       "name": "Get Room",
       "request": {
         "method": "GET",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/rooms/{{roomId}}"
+      }
+    },
+    {
+      "name": "Update Room",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Updated Room Name\"\n}"
+        },
+        "url": "{{baseUrl}}/api/rooms/{{roomId}}"
+      }
+    },
+    {
+      "name": "Regenerate Invite Code",
+      "request": {
+        "method": "POST",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/rooms/{{roomId}}/invite-code"
+      }
+    },
+    {
+      "name": "Delete Room",
+      "request": {
+        "method": "DELETE",
         "auth": {
           "type": "bearer",
           "bearer": [
