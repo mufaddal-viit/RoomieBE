@@ -26,20 +26,28 @@ const createAuthRouter = prisma => {
       if (!passwordMatches) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
-      if (!isHashed) {
-        const hashedPassword = await bcrypt.hash(password, 12);
-        await prisma.roommate.update({
-          where: { id: roommate.id },
-          data: { password: hashedPassword },
-        });
-      }
       const secret = process.env.JWT_SECRET;
       if (!secret) {
         console.error('JWT_SECRET is not configured');
         return res.status(500).json({ error: 'Server misconfigured' });
       }
-      const token = jwt.sign({ sub: roommate.id }, secret, { expiresIn: '7d' });
-      res.json({ token, user: withoutPassword(roommate) });
+      const updateData = {
+        tokenVersion: (roommate.tokenVersion ?? 0) + 1,
+      };
+      if (!isHashed) {
+        updateData.password = await bcrypt.hash(password, 12);
+      }
+      const updatedRoommate = await prisma.roommate.update({
+        where: { id: roommate.id },
+        data: updateData,
+        include: { room: true },
+      });
+      const token = jwt.sign(
+        { sub: updatedRoommate.id, ver: updatedRoommate.tokenVersion },
+        secret,
+        { expiresIn: '7d' },
+      );
+      res.json({ token, user: withoutPassword(updatedRoommate) });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Failed to sign in' });

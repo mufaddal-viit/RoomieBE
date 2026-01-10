@@ -29,6 +29,7 @@ model Roommate {
   email            String    @unique
   password         String
   isManager        Boolean   @default(false)
+  tokenVersion     Int       @default(0)
   roomId           String    @db.ObjectId
   room             Room      @relation(fields: [roomId], references: [id])
   expensesAdded    Expense[] @relation("ExpensesAdded")

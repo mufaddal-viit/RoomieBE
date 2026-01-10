@@ -2,7 +2,7 @@ const isObject = value => value !== null && typeof value === 'object';
 
 export const withoutPassword = roommate => {
   if (!isObject(roommate)) return roommate;
-  const { password, ...rest } = roommate;
+  const { password, tokenVersion, ...rest } = roommate;
   return rest;
 };
 

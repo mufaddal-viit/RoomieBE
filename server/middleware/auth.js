@@ -26,14 +26,19 @@ export const createAuthMiddleware = prisma => {
     }
 
     const userId = typeof payload === 'string' ? payload : payload?.sub;
+    const tokenVersion = typeof payload === 'object' ? payload?.ver : null;
     if (!userId) return res.status(401).json({ error: 'Invalid token' });
 
     try {
       const roommate = await prisma.roommate.findUnique({
         where: { id: userId },
-        select: { id: true, email: true, isManager: true, roomId: true },
+        select: { id: true, email: true, isManager: true, roomId: true, tokenVersion: true },
       });
       if (!roommate) return res.status(401).json({ error: 'Invalid token' });
+      const currentTokenVersion = roommate.tokenVersion ?? 0;
+      if (tokenVersion === null || tokenVersion === undefined || tokenVersion !== currentTokenVersion) {
+        return res.status(401).json({ error: 'Invalid token' });
+      }
       req.user = roommate;
       return next();
     } catch (error) {
