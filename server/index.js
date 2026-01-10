@@ -37,7 +37,7 @@ async function startServer() {
   }
 
   app.listen(PORT, () => {
-    console.log(`API server running on http://localhost:${PORT}/app/`);
+    console.log(`API server running`);
   });
 }
 
