@@ -7,10 +7,8 @@ const createAuthRouter = prisma => {
   const router = Router();
 
   router.post('/login',async (req, res) => {
-    console.log("REACHED HERE")
-    console.log(req,res)
     try {
-      console.log("REACHED HERE")
+      // console.log("REACHED HERE")
       const { email, password } = req.body;
       if (!email || !password) return res.status(400).json({ error: 'Email and password are required' });
       const normalizedEmail = email.trim().toLowerCase();
