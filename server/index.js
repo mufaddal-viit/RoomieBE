@@ -20,7 +20,7 @@ app.get("/", (req, res) => {
   res.send("ALL OKAAY TO PROCEED");
 });
 
-app.use('/health', createHealthRouter());
+app.use('/health', createHealthRouter(prisma));
 app.use('/api', createRoomsRouter(prisma, auth));
 app.use('/api', createRoommateRouter(prisma, auth));
 app.use('/api', createAuthRouter(prisma));
