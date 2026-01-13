@@ -101,17 +101,31 @@ List roommates in a room.
   - Response: array of roommates (passwords removed)
   - Handler: [server/Roommate.js:8](server/Roommate.js#L8)
 
-Create a roommate account (manager only).
-- `POST /api/roommates`
-  - Auth: required (manager only, same room)
+Register a new roommate account.
+- `POST /api/roommates/register`
+  - Auth: none
   - Body:
     - `name` (string, required)
     - `email` (string, required)
     - `password` (string, required)
-    - `roomId` (string, required)
-    - `isManager` (boolean, optional)
+    - `roomId` (string, optional)
+  - Rules:
+    - If `roomId` is provided, the roommate is added to that room.
+    - The first roommate in a room becomes manager.
   - Response: roommate object (password removed)
   - Handler: [server/Roommate.js:24](server/Roommate.js#L24)
+
+Add an existing roommate to the manager's room.
+- `POST /api/roommates/add-member`
+  - Auth: required (manager only, same room)
+  - Body:
+    - `roommateId` (string, optional)
+    - `email` (string, optional)
+  - Rules:
+    - Provide either `roommateId` or `email`.
+    - Roommate cannot already belong to another room.
+  - Response: updated roommate object (password removed)
+  - Handler: [server/Roommate.js:63](server/Roommate.js#L63)
 
 ### Expenses
 List expenses for a room.

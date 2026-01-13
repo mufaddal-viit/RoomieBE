@@ -30,8 +30,8 @@ model Roommate {
   password         String
   isManager        Boolean   @default(false)
   tokenVersion     Int       @default(0)
-  roomId           String    @db.ObjectId
-  room             Room      @relation(fields: [roomId], references: [id])
+  roomId           String?   @db.ObjectId
+  room             Room?     @relation(fields: [roomId], references: [id])
   expensesAdded    Expense[] @relation("ExpensesAdded")
   expensesApproved Expense[] @relation("ExpensesApproved")
   createdAt        DateTime  @default(now())

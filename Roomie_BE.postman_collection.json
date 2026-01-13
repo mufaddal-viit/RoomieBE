@@ -22,6 +22,10 @@
       "value": ""
     },
     {
+      "key": "previousToken",
+      "value": ""
+    },
+    {
       "key": "userId",
       "value": ""
     },
@@ -55,6 +59,8 @@
             "type": "text/javascript",
             "exec": [
               "const data = pm.response.json();",
+              "const priorToken = pm.environment.get('token');",
+              "if (priorToken) pm.environment.set('previousToken', priorToken);",
               "if (data?.token) pm.environment.set('token', data.token);",
               "if (data?.user?.id) pm.environment.set('userId', data.user.id);",
               "if (data?.user?.roomId) pm.environment.set('roomId', data.user.roomId);"
