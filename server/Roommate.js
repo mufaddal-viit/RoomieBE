@@ -23,11 +23,23 @@ const createRoommateRouter = (prisma, auth) => {
 
   router.post('/roommates/register', async (req, res) => {
   try {
-    const { name, email, password, roomId: inviteCode } = req.body;
+    const {
+      name,
+      email,
+      password,
+      roomId,       // used when creating a new room
+      inviteCode,   // used when joining an existing room
+    } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({
         error: 'name, email, and password are required',
+      });
+    }
+
+    if (roomId && inviteCode) {
+      return res.status(400).json({
+        error: 'Provide either roomId or inviteCode, not both',
       });
     }
 
@@ -44,7 +56,22 @@ const createRoommateRouter = (prisma, auth) => {
     let room = null;
     let isManager = false;
 
-    if (typeof inviteCode === 'string' && inviteCode.trim()) {
+    // CREATE ROOM FLOW
+    if (roomId) {
+      room = await prisma.room.findUnique({
+        where: { id: roomId },
+      });
+
+      if (!room) {
+        return res.status(404).json({ error: 'Room not found' });
+      }
+
+      // Creator is always manager
+      isManager = true;
+    }
+
+    // JOIN ROOM FLOW
+    if (inviteCode) {
       const trimmedInviteCode = inviteCode.trim();
 
       room = await prisma.room.findUnique({
@@ -59,7 +86,7 @@ const createRoommateRouter = (prisma, auth) => {
         where: { roomId: room.id },
       });
 
-      // First person in the room becomes manager
+      // First person joining an empty room becomes manager
       isManager = !existingRoommate;
     }
 
@@ -81,6 +108,7 @@ const createRoommateRouter = (prisma, auth) => {
     res.status(500).json({ error: 'Failed to create roommate' });
   }
 });
+
 
 
   router.post('/roommates/add-member', auth, async (req, res) => {
