@@ -55,11 +55,10 @@ const createRoomsRouter = (prisma, auth) => {
     }
   });
 
-  router.post('/rooms', auth, async (req, res) => {
+  router.post('/rooms', async (req, res) => {
     try {
       const { name, inviteCode } = req.body;
       if (!name) return res.status(400).json({ error: 'Room name is required' });
-      if (!req.user.email) return res.status(403).json({ error: 'Email required' });
 
       const trimmedCode = inviteCode?.trim();
       const code = trimmedCode ? trimmedCode : await getUniqueInviteCode(prisma);
@@ -68,15 +67,8 @@ const createRoomsRouter = (prisma, auth) => {
         if (existing) return res.status(400).json({ error: 'Invite code already exists' });
       }
 
-      const room = await prisma.$transaction(async tx => {
-        const created = await tx.room.create({
-          data: { name, inviteCode: code },
-        });
-        await tx.roommate.update({
-          where: { id: req.user.id },
-          data: { roomId: created.id, isManager: true },
-        });
-        return created;
+      const room = await prisma.room.create({
+        data: { name, inviteCode: code },
       });
       res.json(room);
     } catch (error) {
