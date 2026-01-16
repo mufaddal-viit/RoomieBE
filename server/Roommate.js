@@ -22,50 +22,66 @@ const createRoommateRouter = (prisma, auth) => {
   });
 
   router.post('/roommates/register', async (req, res) => {
-    try {
-      const { name, email, password, roomId } = req.body;
-      if (!name || !email || !password) {
-        return res.status(400).json({ error: 'name, email, and password are required' });
-      }
+  try {
+    const { name, email, password, roomId: inviteCode } = req.body;
 
-      const trimmedRoomId = typeof roomId === 'string' ? roomId.trim() : '';
-      const hasRoom = Boolean(trimmedRoomId);
-
-      const normalizedEmail = email.trim().toLowerCase();
-      const emailExists = await prisma.roommate.findFirst({
-        where: { email: normalizedEmail },
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        error: 'name, email, and password are required',
       });
-      if (emailExists) return res.status(400).json({ error: 'Email already exists' });
-
-      let isManager = false;
-      if (hasRoom) {
-        const roomExists = await prisma.room.findUnique({
-          where: { id: trimmedRoomId },
-          select: { id: true },
-        });
-        if (!roomExists) return res.status(404).json({ error: 'Room not found' });
-        const existingRoommate = await prisma.roommate.findFirst({
-          where: { roomId: trimmedRoomId },
-        });
-        isManager = !existingRoommate;
-      }
-
-      const hashedPassword = await bcrypt.hash(password, 12);
-      const roommate = await prisma.roommate.create({
-        data: {
-          name: name.trim(),
-          email: normalizedEmail,
-          password: hashedPassword,
-          isManager,
-          ...(hasRoom ? { roomId: trimmedRoomId } : {}),
-        },
-      });
-      res.json(withoutPassword(roommate));
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Failed to create roommate' });
     }
-  });
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const emailExists = await prisma.roommate.findFirst({
+      where: { email: normalizedEmail },
+    });
+
+    if (emailExists) {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
+
+    let room = null;
+    let isManager = false;
+
+    if (typeof inviteCode === 'string' && inviteCode.trim()) {
+      const trimmedInviteCode = inviteCode.trim();
+
+      room = await prisma.room.findUnique({
+        where: { inviteCode: trimmedInviteCode },
+      });
+
+      if (!room) {
+        return res.status(404).json({ error: 'Invalid invite code' });
+      }
+
+      const existingRoommate = await prisma.roommate.findFirst({
+        where: { roomId: room.id },
+      });
+
+      // First person in the room becomes manager
+      isManager = !existingRoommate;
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    const roommate = await prisma.roommate.create({
+      data: {
+        name: name.trim(),
+        email: normalizedEmail,
+        password: hashedPassword,
+        isManager,
+        ...(room ? { roomId: room.id } : {}),
+      },
+    });
+
+    res.json(withoutPassword(roommate));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to create roommate' });
+  }
+});
+
 
   router.post('/roommates/add-member', auth, async (req, res) => {
     try {
