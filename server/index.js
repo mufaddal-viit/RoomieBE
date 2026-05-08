@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import createAuthRouter from './auth.js';
+import createContributionRouter from './contribution.js';
 import createExpensesRouter from './expense.js';
 import createHealthRouter from './health.js';
 import createRoommateRouter from './Roommate.js';
@@ -24,6 +25,7 @@ app.use('/health', createHealthRouter(prisma));
 app.use('/api', createRoomsRouter(prisma, auth));
 app.use('/api', createRoommateRouter(prisma, auth));
 app.use('/api', createAuthRouter(prisma));
+app.use('/api', createContributionRouter(prisma, auth));
 app.use('/api', createExpensesRouter(prisma, auth));
 
 async function startServer() {

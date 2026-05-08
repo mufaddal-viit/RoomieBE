@@ -82,12 +82,9 @@ const createRoommateRouter = (prisma, auth) => {
         return res.status(404).json({ error: 'Invalid invite code' });
       }
 
-      const existingRoommate = await prisma.roommate.findFirst({
-        where: { roomId: room.id },
-      });
-
-      // First person joining an empty room becomes manager
-      isManager = !existingRoommate;
+      // People joining with invite code are never managers
+      // Only the room creator is a manager
+      isManager = false;
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);

@@ -14,28 +14,30 @@ enum ExpenseStatus {
 }
 
 model Room {
-  id         String     @id @default(auto()) @map("_id") @db.ObjectId
-  name       String
-  inviteCode String     @unique
-  roommates  Roommate[]
-  expenses   Expense[]
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  id                    String                 @id @default(auto()) @map("_id") @db.ObjectId
+  name                  String
+  inviteCode            String                 @unique
+  roommates             Roommate[]
+  expenses              Expense[]
+  contributionPeriods   ContributionPeriod[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
 }
 
 model Roommate {
-  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  id               String          @id @default(auto()) @map("_id") @db.ObjectId
   name             String
-  email            String    @unique
+  email            String          @unique
   password         String
-  isManager        Boolean   @default(false)
-  tokenVersion     Int       @default(0)
-  roomId           String?   @db.ObjectId
-  room             Room?     @relation(fields: [roomId], references: [id])
-  expensesAdded    Expense[] @relation("ExpensesAdded")
-  expensesApproved Expense[] @relation("ExpensesApproved")
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  isManager        Boolean         @default(false)
+  tokenVersion     Int             @default(0)
+  roomId           String?         @db.ObjectId
+  room             Room?           @relation(fields: [roomId], references: [id])
+  expensesAdded    Expense[]       @relation("ExpensesAdded")
+  expensesApproved Expense[]       @relation("ExpensesApproved")
+  contributions    Contribution[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
 
   @@index([roomId])
 }
@@ -58,4 +60,34 @@ model Expense {
   updatedAt    DateTime      @updatedAt
 
   @@index([roomId])
+}
+
+model ContributionPeriod {
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  roomId          String         @db.ObjectId
+  room            Room           @relation(fields: [roomId], references: [id])
+  month           Int
+  year            Int
+  amountPerPerson Float
+  contributions   Contribution[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@unique([roomId, month, year])
+  @@index([roomId])
+}
+
+model Contribution {
+  id         String             @id @default(auto()) @map("_id") @db.ObjectId
+  periodId   String             @db.ObjectId
+  period     ContributionPeriod @relation(fields: [periodId], references: [id])
+  roommateId String             @db.ObjectId
+  roommate   Roommate           @relation(fields: [roommateId], references: [id])
+  amountPaid Float              @default(0)
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@unique([periodId, roommateId])
+  @@index([periodId])
+  @@index([roommateId])
 }
